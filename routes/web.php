@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 
 
@@ -57,7 +58,7 @@ Route::get("user/{name?}", function ($name = "Guest") {
 
 
 
-Route::get('/home/{test?}', [PageController::class, "home"]);
+Route::get('/', [PageController::class, "home"]);
 Route::get('login', [PageController::class, "login"])->name('login');
 Route::get('/cart', [PageController::class, "cart"])->name('cart');
 
@@ -74,26 +75,40 @@ Route::POST('sign-in', [PageController::class, "sign_in"])->name('sign_in');
 
 
 
+Route::get("product", function () {
+    // dd(Product::where("status","draft")->first());
+    // $product = new Product();
+    // $product = Product::find(1);
+    // $product->title = "lap";
+    // $product->dec = "test";
+    // $product->price = "50000";
+    // $product->save();
 
+    // Product::create([
+    //     "title" => "lap create",
+    //     "dec" => "test create",
+    //     "price" => "80000",
+    //     "image" => "test/test.png",
+    // ]);
 
+    // $product = Product::find(2);
+    // $product->update([
+    //     "title" => "lap create",
+    //     "dec" => "test create",
+    //     "price" => "80000",
+    //     "image" => "test/test.png",
+    // ]);
+    // Product::find(2)->delete();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // $products = Product::where("status", "!=", "draft")
+    //                     ->where("created_at", '>=', now()->subDays(7))
+    //                     ->get();
+    // $products = Product::where("title","like","%test%")->get();
+    // $products = Product::limit(3)->get();
+    $products = Product::skip(5)->take(2)->get();
+    $products = Product::whereIn("id",[1,5])->get();
+    $products = Product::whereNotIn("id",[1,5])->get();
+    $products = Product::paginate(5);
+    dd($products);
+});
 
