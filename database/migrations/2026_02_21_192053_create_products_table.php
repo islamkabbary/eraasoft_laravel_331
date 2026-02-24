@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             // title (varchar(255)) - dec (text) - price (decimal(8,2)) - image (varchar(255))
 
+            $table->foreignId("category_id")->nullable()->constrained();
             $table->string("title");
             $table->text("dec");
             $table->decimal("price",8,2);
