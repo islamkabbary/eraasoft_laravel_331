@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text("dec");
             $table->decimal("price",8,2);
             $table->string("image")->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
