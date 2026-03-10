@@ -13,7 +13,7 @@ class Product extends Model
 {
     use HasFactory,SoftDeletes;
     // protected $table = "migrations";
-    protected $fillable = ["title", 'dec', 'price', 'image'];
+    protected $fillable = ["title", 'dec', 'price', 'image','category_id'];
     // protected $guarded = ["id",'title'];
     protected $casts = [
         'is_active' => "boolean",
@@ -29,11 +29,11 @@ class Product extends Model
             // $product->slug = Str::slug($product->title);
             $product->created_by = Auth::user()->id;
         });
-        static::updating(function($product){
-            if($product->is_locked){
-                throw new Exception("PRoduct is locked");
-            }
-        });
+        // static::updating(function($product){
+        //     if($product->is_locked){
+        //         throw new Exception("PRoduct is locked");
+        //     }
+        // });
     }
 
     // title
@@ -56,7 +56,10 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
-
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class,'created_by','id');
+    }
     public function orders()
     {
         return $this->belongsToMany(Order::class,OrderItem::class)->withPivot("qty","price");
