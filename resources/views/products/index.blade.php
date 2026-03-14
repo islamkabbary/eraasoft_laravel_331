@@ -4,10 +4,12 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 Products
             </h2>
+            @can('create')
             <a href="{{ route('products.create') }}"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 + Add Product
             </a>
+            @endcan
         </div>
     </x-slot>
 
@@ -50,13 +52,15 @@
                                     <td class="px-4 py-3 flex gap-4">
                                         <a href="{{ route('products.edit', $product) }}"
                                             class="text-blue-500 hover:text-blue-700 mr-3">Edit</a>
-                                        <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline"
-                                            onsubmit="return confirm('Are you sure?')">
-                                            @csrf
-                                            @method("delete")
-                                            <button type="submit"
-                                                class="text-red-500 hover:text-red-700">Delete</button>
-                                        </form>
+                                        @can('delete',$product)
+                                            <form action="{{ route('products.destroy', $product) }}" method="POST"
+                                                class="inline" onsubmit="return confirm('Are you sure?')">
+                                                @csrf
+                                                @method('delete')
+                                                <button type="submit"
+                                                    class="text-red-500 hover:text-red-700">Delete</button>
+                                            </form>
+                                        @endcan
                                     </td>
                                 </tr>
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define("create-product",function($user){
+            return $user->user_type === "admin";
+        });
+        Gate::define("delete-product",function($user,$product){
+            return $user->id === $product->created_by;
+        });
     }
 }

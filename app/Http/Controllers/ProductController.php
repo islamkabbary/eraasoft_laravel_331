@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProductCreatedEvent;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -23,8 +28,12 @@ class ProductController extends Controller
      */
     public function create()
     {
+        $this->authorize("create",Product::class);
+        // if(Gate::allows('create-product')){
         $categories = Category::all();
         return view("products.create", ['categories' => $categories]);
+        // }
+        // abort(403);
     }
 
     /**
@@ -32,6 +41,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize("create",Product::class);
         $request->validate([
             "title" => "required|string|max:255",
             "dec" => "required|string",
@@ -48,7 +58,8 @@ class ProductController extends Controller
             $data['image'] = $path;
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+        event(new ProductCreatedEvent($product));
 
         return redirect()->route("products.index")->with("success", "Product Created successfully");
     }
@@ -58,7 +69,7 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $this->authorize("view",Product::class);
     }
 
     /**
@@ -66,6 +77,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $this->authorize("update",Product::class);
         $categories = Category::all();
         return view("products.edit", ['product' => $product, 'categories' => $categories]);
     }
@@ -75,6 +87,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $this->authorize("update",Product::class);
         $request->validate([
             "title" => "required|string|max:255",
             "dec" => "required|string",
@@ -103,11 +116,14 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        if ($product->image && Storage::disk("public")->exists($product->image)) {
-            Storage::disk("public")->delete($product->image);
-        }
+        $this->authorize("create-product",$product);
+        if (Gate::allows('delete-product',$product)) {
+            if ($product->image && Storage::disk("public")->exists($product->image)) {
+                Storage::disk("public")->delete($product->image);
+            }
 
-        $product->delete();
-        return redirect()->route("products.index")->with("success", "Product deleted successfully");
+            $product->delete();
+            return redirect()->route("products.index")->with("success", "Product deleted successfully");
+        }
     }
 }
