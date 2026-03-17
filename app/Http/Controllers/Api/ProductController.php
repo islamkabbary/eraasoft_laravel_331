@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use App\Traits\ApiResponseTrait;
@@ -21,11 +22,11 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $products = Product::with(['category', 'createdBy'])->latest()->get();
-            return $this->success($products);
+            $products = Product::with('createdBy')->latest()->paginate($request->limit);
+            return ProductResource::collection($products);
         } catch (\Throwable $th) {
             return $this->error($th->getMessage());
         }
@@ -49,7 +50,7 @@ class ProductController extends Controller
      */
     public function show(Product $Product)
     {
-        return $this->success($Product);
+        return $this->success(new ProductResource($Product));
     }
 
     /**
