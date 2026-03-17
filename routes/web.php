@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index']);
 
 require __DIR__.'/auth.php';
 
@@ -26,7 +27,8 @@ require __DIR__.'/auth.php';
 // Route::patch();
 // Route::delete();
 
-Route::resource("products",ProductController::class)->middleware(["auth","can:create-product"]);
+// Route::resource("products",ProductController::class)->middleware(["auth","can:create-product"]);
+Route::resource("products",ProductController::class)->middleware("auth");
 
 /**
  *  /products               - get                  => index

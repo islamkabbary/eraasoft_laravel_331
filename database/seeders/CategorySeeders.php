@@ -15,5 +15,17 @@ class CategorySeeders extends Seeder
         Category::create([
             "name" => "ELC"
         ]);
+        Category::create([
+            "name" => "ELC2"
+        ]);
+        Category::create([
+            "name" => "ELC3"
+        ]);
+        Category::create([
+            "name" => "ELC4"
+        ]);
+        Category::create([
+            "name" => "ELC5"
+        ]);
     }
 }

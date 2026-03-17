@@ -8,19 +8,32 @@ use App\Models\Product;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use ProductService;
 
 class ProductController extends Controller
 {
     use AuthorizesRequests;
 
+    public $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $products = Product::with(['category', 'createdBy'])->latest()->get();
-        return view("products.index", ['products' => $products]);
+        try {
+            // $products = Product::latest()->get();
+            $products = Product::with(['category', 'createdBy'])->latest()->get();
+            return view("products.index", ['products' => $products]);
+        } catch (\Throwable $th) {
+            Log::channel('payment')->info($th->getMessage());
+        }
     }
 
     /**
@@ -28,7 +41,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $this->authorize("create",Product::class);
+        // $this->authorize("create",Product::class);
         // if(Gate::allows('create-product')){
         $categories = Category::all();
         return view("products.create", ['categories' => $categories]);
@@ -41,27 +54,12 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize("create",Product::class);
-        $request->validate([
-            "title" => "required|string|max:255",
-            "dec" => "required|string",
-            "price" => "required|numeric|min:0",
-            "category_id" => "nullable|exists:categories,id",
-            "image" => "nullable|mimes:jpg,png|max:2048"
-        ]);
-
-        $data = $request->only(['title', 'dec', 'price', 'category_id']);
-
-        if ($request->hasFile('image')) {
-            $file = $request->file("image");
-            $path = Storage::disk("public")->put("products", $file);
-            $data['image'] = $path;
+        try {
+            $this->productService->createProduct($request);
+            return redirect()->route("products.index")->with("success", "Product Created successfully");
+        } catch (\Throwable $th) {
+            //throw $th;
         }
-
-        $product = Product::create($data);
-        event(new ProductCreatedEvent($product));
-
-        return redirect()->route("products.index")->with("success", "Product Created successfully");
     }
 
     /**
@@ -69,7 +67,7 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $this->authorize("view",Product::class);
+        $this->authorize("view", Product::class);
     }
 
     /**
@@ -77,7 +75,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        $this->authorize("update",Product::class);
+        $this->authorize("update", Product::class);
         $categories = Category::all();
         return view("products.edit", ['product' => $product, 'categories' => $categories]);
     }
@@ -87,7 +85,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $this->authorize("update",Product::class);
+        $this->authorize("update", Product::class);
         $request->validate([
             "title" => "required|string|max:255",
             "dec" => "required|string",
@@ -116,8 +114,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $this->authorize("create-product",$product);
-        if (Gate::allows('delete-product',$product)) {
+        $this->authorize("create-product", $product);
+        if (Gate::allows('delete-product', $product)) {
             if ($product->image && Storage::disk("public")->exists($product->image)) {
                 Storage::disk("public")->delete($product->image);
             }
